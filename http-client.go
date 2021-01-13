@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"errors"
 	goquery "github.com/google/go-querystring/query"
 	"io"
 	"net"
@@ -262,35 +261,11 @@ func (h *HttpClient) Send(receiver ...io.ReadWriter) (statusCode int, err error)
 		}
 	}()
 	h.resp, err = h.client.Do(req)
-	if err == nil && h.config.Retry.CheckStatusCode {
-		if h.resp.StatusCode >= 400 {
-			h.resp.Close = true
-			_ = h.resp.Body.Close()
-			err = errors.New(http.StatusText(h.resp.StatusCode))
-		}
-	}
 	if err != nil {
-		for i := 0; i < h.config.Retry.Times; i++ {
-			h.resp, err = h.client.Do(req)
-			if err != nil {
-				continue
-			}
-			if h.config.Retry.CheckStatusCode {
-				if h.resp.StatusCode >= 400 {
-					h.resp.Close = true
-					_ = h.resp.Body.Close()
-					err = errors.New(http.StatusText(h.resp.StatusCode))
-					continue
-				}
-			}
-			break
+		if h.resp != nil {
+			return h.resp.StatusCode, err
 		}
-		if err != nil {
-			if h.resp != nil {
-				return h.resp.StatusCode, err
-			}
-			return http.StatusBadRequest, err
-		}
+		return http.StatusBadRequest, err
 	}
 	h.resp.Close = true
 	defer func() func() {

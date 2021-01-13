@@ -47,7 +47,6 @@ type Config struct {
 	ProxyUser       string      // 代理服务器认证用户名
 	ProxyPassword   string      // 代理服务器认证密码
 	ReUseTCP        bool        // 为同一地址多次请求复用TCP连接
-	Retry           Retry       // 重试设置
 	TLSClientConfig *tls.Config // tls config
 }
 
@@ -67,10 +66,6 @@ func NewConfig() Config {
 		IsAuthProxy:   false,
 		ProxyUser:     "",
 		ProxyPassword: "",
-		Retry: Retry{
-			Times:           3,
-			CheckStatusCode: true,
-		},
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 }
